@@ -1,0 +1,39 @@
+#!/bin/sh
+#
+# students must NOT change this file in any way!!!
+PATH=/bin:/usr/bin:/opt/local/bin:/usr/local/bin
+
+if [ $# -ne 7 ] ; then
+    echo "Usage: $0 TESTPROG salt hash alphabet pwdlen answer numprocs" 1>&2
+    exit 66
+fi
+
+PROG=$1
+SALT=$2
+HASH=$3
+ALPHABET=$4
+PWDLEN=$5
+ANSWER=$6
+NUMPROCS=$7
+
+#
+# Don't change anything else
+#
+
+CMD="echo $SALT $HASH $ALPHABET $PWDLEN |  mpiexec -n $NUMPROCS --oversubscribe ./hash_cracker"
+echo ${ANSWER} > $PROG.correct
+
+echo "running: $CMD"
+
+eval time $CMD > $PROG.myoutput
+
+
+if cmp -s $PROG.correct $PROG.myoutput; then
+    echo "PASSES - \"`cat $PROG.myoutput`\""; 
+    echo
+    exit 0
+else
+    echo "FAILS  - \"`cat $PROG.myoutput`\" should be \"`cat $PROG.correct`\""; 
+    echo
+    exit 99
+fi

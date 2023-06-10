@@ -1,0 +1,184 @@
+
+
+
+US1 Vyos
+set interfaces ethernet eth0 address 172.16.72.1/27
+set interfaces ethernet eth0 description toDMZFirewall
+
+set interfaces ethernet eth1 address  172.16.47.254/20
+set interfaces ethernet eth1 description US1
+
+set interfaces ethernet eth2 address 172.16.72.33/27
+set interfaces ethernet eth2 description toUS2
+
+set interfaces ethernet eth3 address 172.16.72.65/26
+set interfaces ethernet eth3 description toChina
+
+set protocols static route 0.0.0.0/0 next-hop 172.16.72.30
+
+
+set service dhcp-server shared-network-name US1-Networks subnet 172.16.32.0/20 range 0 start 172.16.32.1
+
+set service dhcp-server shared-network-name US1-Networks subnet 172.16.32.0/20 range 0 stop 172.16.47.253
+
+
+set service dhcp-server shared-network-name US1-Networks subnet 172.16.32.0/20 default-router 172.16.47.254
+
+set service dhcp-server shared-network-name US1-Networks subnet 172.16.32.0/20 lease 120
+2
+
+set protocols ospf area 0 network 172.16.0.0/17
+
+set protocols ospf log-adjacency-changes
+
+set protocols ospf redistribute connected metric-type 2
+
+set protocols ospf redistribute connected route-map CONNECT
+
+set policy route-map CONNECT rule 10 action permit
+
+set policy route-map CONNECT rule 10 match interface lo
+
+
+
+///
+set service dhcp-server shared-network-name US1-Networks subnet 172.16.32.0/20 name-server 100.70.51.4
+
+set system name-server 132.235.160.10
+set system name-server 132.235.160.11
+////
+
+------------------------------------------------------------------------------------------------------------------
+
+Vyous US2 
+
+set interfaces ethernet eth0 address 172.16.72.62/27
+set interfaces ethernet eth0 description toUS1
+
+set interfaces ethernet eth1 address 172.16.72.129/26
+set interfaces ethernet eth1 description toEU
+
+set interfaces ethernet eth2 address 172.16.31.254/19
+set interfaces ethernet eth2 description US2
+
+set service dhcp-server shared-network-name US2-Networks subnet 172.16.0.0/19 name-server 100.70.51.4
+
+
+
+set service dhcp-server shared-network-name US2-Networks subnet 172.16.0.0/19 range 0 start 172.16.0.1
+
+set service dhcp-server shared-network-name US2-Networks subnet 172.16.0.0/19 range 0 stop 172.16.31.253
+
+
+set service dhcp-server shared-network-name US2-Networks subnet 172.16.0.0/19 default-router 172.16.31.254
+
+set service dhcp-server shared-network-name US2-Networks subnet 172.16.0.0/19 lease 120
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------
+
+Vyous EU
+
+set interfaces ethernet eth0 address 172.16.72.190/26
+set interfaces ethernet eth0 description toUS2
+
+set interfaces ethernet eth1 address 172.16.72.193/26
+set interfaces ethernet eth1 description toChina
+
+set interfaces ethernet eth2 address 172.16.71.254/21
+set interfaces ethernet eth2 description EU
+
+conf
+set service dhcp-server shared-network-name EU-Networks subnet 172.16.64.0/21 name-server 100.70.51.4
+
+set service dhcp-server shared-network-name EU-Networks subnet 172.16.64.0/21 range 0 start 172.16.64.1
+
+set service dhcp-server shared-network-name EU-Networks subnet 172.16.64.0/21 range 0 stop 172.16.71.253
+
+
+set service dhcp-server shared-network-name EU-Networks subnet 172.16.64.0/21 default-router 172.16.71.254
+
+set service dhcp-server shared-network-name EU-Networks subnet 172.16.64.0/21 lease 120
+
+
+
+
+------------------------------------------------------------------------------------------------------
+
+Vyos China
+
+set interfaces ethernet eth0 address  172.16.72.126/26
+set interfaces ethernet eth0 description toUS1
+
+set interfaces ethernet eth2 address 172.16.63.254/20
+set interfaces ethernet eth2 description China
+
+set interfaces ethernet eth1 address 172.16.72.254/26
+set interfaces ethernet eth1 description toEU
+
+set service dhcp-server shared-network-name China-Networks subnet 172.16.48.0/20 name-server 100.70.51.4
+
+set service dhcp-server shared-network-name 172.16.48.0/20-Networks subnet 172.16.48.0/20 range 0 start 172.16.48.1
+
+set service dhcp-server shared-network-name China-Networks subnet 172.16.48.0/20 range 0 stop 172.16.63.253
+
+set service dhcp-server shared-network-name China-Networks subnet 172.16.48.0/20 default-router 172.16.63.254
+
+set service dhcp-server shared-network-name China-Networks subnet 172.16.48.0/20 lease 120
+
+
+---------------------------------------------------
+DNS CLI
+
+
+sudo nmcli general hostname DNS
+sudo nmcli con mod "Wired connection 1" ipv4.addresses 100.70.51.4/24
+sudo nmcli con mod "Wired connection 1" ipv4.gateway 100.70.51.254
+sudo nmcli con mod "Wired connection 1" ipv4.dns 132.235.160.10
+sudo nmcli con mod "Wired connection 1" ipv4.dns 132.235.160.11
+sudo nmcli con mod "Wired connection 1" ipv4.method manual
+sudo nmcli connection down "Wired connection 1"
+sudo nmcli connection up "Wired connection 1"
+
+
+-------------------------
+HTTP CLI
+
+sudo nmcli general hostname HTTP-Web
+sudo nmcli con mod "Wired connection 1" ipv4.addresses 100.70.51.3/24
+sudo nmcli con mod "Wired connection 1" ipv4.gateway 100.70.51.254
+sudo nmcli con mod "Wired connection 1" ipv4.dns 100.70.51.4
+sudo nmcli con mod "Wired connection 1" ipv4.method manual
+sudo nmcli connection down "Wired connection 1"
+sudo nmcli connection up "Wired connection 1"
+
+
+
+-----------------------
+-----BEGIN OpenVPN Static key V1-----
+b359f793ef87bda0bde26a6508f751b6
+44ac690943c51f3d86dd799507e371bc
+88c69f3ba7fb6e546183da65f2bc6412
+cd672c7df6094659a93380abd21d8d9e
+fa39e7db958ad5bc3f5c958e907032de
+e16822c8749c043ad46a725b2a27ddf9
+946ae913053053a0bc0fcdc68c51c962
+5c9b7e6f663f4141ed13556be53ae171
+f3ac6fb2884368653502c4f675eae4f9
+46d54337901153c6694e2c77d93274ba
+34e3e729f497a68298b6ca9183b829b4
+f5bf8e7ecdeead703c8c4e5c25a79b1a
+f3e78a5fa6ab252c992711da2e452d8a
+72d326367bb9467789d2cb3deb3fa41d
+186201a86e52c22311991d9ede4c4a7f
+a38f5f8514bcfc7af59c57645acb6d6d
+-----END OpenVPN Static key V1-----
+
+
+set interfaces ethernet eth1 address 172.16.74.254/24
+set interfaces ethernet eth1 description irland
+
+
